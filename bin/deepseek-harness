@@ -1,0 +1,340 @@
+#!/usr/bin/env bash
+# deepseek-harness — desktop launcher for DeepSeek Harness (dsh).
+#
+# Starts the dsh web interface (profile "web") for a workspace folder, one instance per folder, and
+# opens its authenticated URL as a standalone app window (Chromium --app with an isolated profile;
+# closing the window stops the server it started) or in a browser tab. Also creates and opens the
+# configuration layers:
+#   global: ~/.dsh/cordis.patch.yml            (every project)
+#   local:  <project>/.dsh/cordis.patch.yml    (this project only; overrides the global layer)
+#
+# Run `deepseek-harness help` for usage. Preferences: ~/.config/deepseek-harness-desktop/launcher.env
+set -euo pipefail
+
+VERSION="0.1.0"
+
+PREFS="${XDG_CONFIG_HOME:-$HOME/.config}/deepseek-harness-desktop/launcher.env"
+STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/deepseek-harness-desktop"
+DSH_HOME_DIR="${DSH_HOME:-$HOME/.dsh}"
+
+# Precedence: preferences file > environment > defaults below.
+# shellcheck disable=SC1090
+[[ -f "$PREFS" ]] && . "$PREFS"
+: "${DSH_DESKTOP_DSH_BIN:=$HOME/.local/bin/dsh}"
+: "${DSH_DESKTOP_WORKSPACE:=$HOME}"
+: "${DSH_DESKTOP_FIRST_PORT:=3080}"
+: "${DSH_DESKTOP_START_TIMEOUT:=120}"
+: "${DSH_DESKTOP_APP_MODE:=1}"
+: "${DSH_DESKTOP_BROWSER:=}"
+: "${DSH_DESKTOP_STOP_ON_CLOSE:=1}"
+# On Wayland Chromium ignores --class and derives the window's app_id from the URL host
+# ("chrome-<host>__-Default"); a dedicated host keeps the app apart from other 127.0.0.1 pages.
+: "${DSH_DESKTOP_APP_HOST:=dsh.localhost}"
+: "${DSH_DESKTOP_KEY_COMMAND:=}"
+
+usage() {
+  cat << 'EOF'
+Usage:
+  deepseek-harness start  [--dir DIR | --menu] [--app | --tab | --no-open] [--print-url]
+  deepseek-harness stop   [--dir DIR | --all]
+  deepseek-harness status [--dir DIR | --all]
+  deepseek-harness config global|local [--dir DIR] [--edit]   # create if missing, print the path
+  deepseek-harness config show [--dir DIR]                    # effective config (dsh --dump-config)
+  deepseek-harness version
+
+Without --dir the current directory is used; --menu uses DSH_DESKTOP_WORKSPACE.
+EOF
+  exit "${1:-0}"
+}
+
+fail() {
+  echo "deepseek-harness: $*" >&2
+  # Launched from the application menu there is no terminal: show the error as a notification.
+  # Clients such as the VS Code extension set DSH_DESKTOP_CLIENT and report errors themselves.
+  if [[ ! -t 2 && -z "${DSH_DESKTOP_CLIENT:-}" ]] && command -v notify-send > /dev/null; then
+    notify-send -i deepseek-harness-desktop "DeepSeek Harness" "$*" || true
+  fi
+  exit 1
+}
+
+require_dsh() {
+  [[ -x "$DSH_DESKTOP_DSH_BIN" ]] || fail "dsh not found at $DSH_DESKTOP_DSH_BIN; run install.sh from deepseek-harness-desktop."
+}
+
+resolve_dir() {
+  realpath -e -- "$1" 2> /dev/null || fail "directory not found: $1"
+}
+
+# One state directory per workspace: dir, pid, url (with token, mode 600), log and window profile.
+state_dir() {
+  printf '%s/%s' "$STATE_ROOT" "$(printf '%s' "$1" | sha1sum | cut -c1-12)"
+}
+
+is_running() {
+  local pid
+  pid="$(cat "$1/pid" 2> /dev/null)" || return 1
+  [[ -n "$pid" ]] && kill -0 "$pid" 2> /dev/null \
+    && tr '\0' ' ' < "/proc/$pid/cmdline" 2> /dev/null | grep -q 'dsh'
+}
+
+free_port() {
+  local p="$1"
+  while (exec 3<> "/dev/tcp/127.0.0.1/$p") 2> /dev/null; do p=$((p + 1)); done
+  echo "$p"
+}
+
+# The web app prints "dsh web: <url with token>" once it is up.
+extract_url() {
+  sed 's/\x1b\[[0-9;]*m//g' "$1" 2> /dev/null | grep 'dsh web:' | grep -oE 'https?://[^[:space:]]+' | head -1
+}
+
+wait_for_url() {
+  local state="$1" pid url deadline=$((SECONDS + DSH_DESKTOP_START_TIMEOUT))
+  pid="$(cat "$state/pid")"
+  until url="$(extract_url "$state/log")" && [[ -n "$url" ]]; do
+    kill -0 "$pid" 2> /dev/null || fail "dsh exited during startup. Log: $state/log"
+    ((SECONDS < deadline)) || fail "dsh did not come up within ${DSH_DESKTOP_START_TIMEOUT}s. Log: $state/log"
+    sleep 0.5
+  done
+  (umask 077 && printf '%s\n' "$url" > "$state/url")
+}
+
+api_key() {
+  [[ -z "${DEEPSEEK_API_KEY:-}" && -n "$DSH_DESKTOP_KEY_COMMAND" ]] || return 0
+  local key
+  # Word-split on purpose: the preference holds a command and its arguments, not shell code.
+  # shellcheck disable=SC2086
+  if key="$($DSH_DESKTOP_KEY_COMMAND)" && [[ -n "$key" ]]; then
+    export DEEPSEEK_API_KEY="$key"
+  else
+    echo "deepseek-harness: DSH_DESKTOP_KEY_COMMAND failed; dsh will use its own stored credential." >&2
+  fi
+}
+
+app_browser() {
+  local browser
+  # An explicit choice is honoured or reported, never silently replaced by another browser.
+  if [[ -n "$DSH_DESKTOP_BROWSER" ]]; then
+    command -v "$DSH_DESKTOP_BROWSER"
+    return
+  fi
+  for browser in chromium google-chrome-stable brave vivaldi-stable microsoft-edge-stable; do
+    command -v "$browser" && return 0
+  done
+  return 1
+}
+
+# Runs detached (setsid -f "$0" _window ...): opens the app window and, once it closes, stops the
+# server if this launch started it.
+app_window() {
+  local state="$1" url="$2" started="$3" browser profile owner
+  browser="$(app_browser)" || fail "no Chromium-based browser found for app mode (set DSH_DESKTOP_BROWSER)."
+  profile="$state/window"
+  mkdir -p "$profile"
+  exec >> "$state/window.log" 2>&1
+  echo "--- $(date '+%F %T') opening window (started=$started)"
+
+  # Profile already open: the browser hands the window to the running process and exits at once;
+  # follow that owning process instead.
+  owner="$(pgrep -o -f -- "user-data-dir=$profile" || true)"
+  "$browser" --app="${url/127.0.0.1/$DSH_DESKTOP_APP_HOST}" --class=deepseek-harness-desktop \
+    --name=deepseek-harness-desktop --user-data-dir="$profile" \
+    --no-first-run --no-default-browser-check < /dev/null || true
+  if [[ -n "$owner" ]]; then
+    while kill -0 "$owner" 2> /dev/null; do sleep 2; done
+  fi
+  echo "--- $(date '+%F %T') window closed"
+
+  if [[ "$started" == 1 && "$DSH_DESKTOP_STOP_ON_CLOSE" == 1 ]]; then
+    stop_state "$state"
+  fi
+}
+
+start() {
+  local dir="$1" open="$2" print_url="$3" state port url started=0 args=()
+  state="$(state_dir "$dir")"
+
+  if ! is_running "$state"; then
+    started=1
+    require_dsh
+    mkdir -p "$state"
+    chmod 700 "$STATE_ROOT" "$state"
+    rm -f "$state/url" "$state/pid"
+    printf '%s\n' "$dir" > "$state/dir"
+
+    port="$(free_port "$DSH_DESKTOP_FIRST_PORT")"
+    args=(--profile web)
+    [[ -f "$dir/.dsh/cordis.patch.yml" ]] && args+=(--patch "$dir/.dsh/cordis.patch.yml")
+    args+=(--no-open --port "$port" --trusted-host "$DSH_DESKTOP_APP_HOST")
+    api_key
+
+    (cd "$dir" && exec setsid "$DSH_DESKTOP_DSH_BIN" "${args[@]}") > "$state/log" 2>&1 < /dev/null &
+    echo "$!" > "$state/pid"
+  fi
+
+  [[ -s "$state/url" ]] || wait_for_url "$state"
+  url="$(cat "$state/url")"
+
+  case "$open" in
+    # Detached without inherited stdout/stderr, so callers reading our output do not wait for the window.
+    app) setsid -f "$0" _window "$state" "$url" "$started" > /dev/null 2>&1 < /dev/null ;;
+    tab) setsid xdg-open "$url" > /dev/null 2>&1 < /dev/null & ;;
+  esac
+
+  if [[ "$print_url" == 1 ]]; then
+    printf '%s\n' "$url"
+  else
+    echo "DeepSeek Harness running for $dir"
+    echo "  URL: $url"
+    echo "  Log: $state/log"
+  fi
+}
+
+stop_state() {
+  local state="$1" pid
+  if is_running "$state"; then
+    pid="$(cat "$state/pid")"
+    # Release the slot before waiting, so a start racing with this stop never has its fresh
+    # pid/url files deleted afterwards.
+    rm -f "$state/pid" "$state/url"
+    kill -TERM "$pid" 2> /dev/null || true
+    for _ in {1..20}; do
+      kill -0 "$pid" 2> /dev/null || break
+      sleep 0.5
+    done
+    kill -0 "$pid" 2> /dev/null && kill -KILL "$pid" 2> /dev/null || true
+    echo "Stopped: $(cat "$state/dir")"
+  fi
+}
+
+status_state() {
+  local state="$1"
+  if is_running "$state"; then
+    echo "running  $(cat "$state/dir")  $(cat "$state/url" 2> /dev/null || echo '(starting)')"
+  else
+    return 3
+  fi
+}
+
+patch_template() {
+  if [[ "$1" == global ]]; then
+    echo "# DeepSeek Harness — GLOBAL configuration (applies to every project)."
+  else
+    cat << 'EOF'
+# DeepSeek Harness — LOCAL configuration for this project.
+# Applied by deepseek-harness (and the VS Code extension) through "dsh --patch".
+# When starting dsh by hand, pass: dsh web --patch .dsh/cordis.patch.yml
+EOF
+  fi
+  cat << 'EOF'
+#
+# Precedence (last wins):
+#   1. profile bundle defaults
+#   2. ~/.dsh/profiles/web/cordis.patch.yml  <- what the Settings screen saves
+#   3. ~/.dsh/cordis.patch.yml               <- global
+#   4. <project>/.dsh/cordis.patch.yml       <- local
+#
+# A field set here can no longer be changed from the Settings screen (dsh refuses the write).
+# Global changes reload live; local changes apply on the next start.
+#
+# Format: a YAML list of {id, name, config} entries. Example (uncomment to use):
+#
+# - id: agent-default-model
+#   name: "@deepseek-ai/dsh-agent-default-model"
+#   config:
+#     provider: deepseek-official
+#     model: deepseek-flash
+#     reasoningEffort: high
+#
+# Effective values and entry ids:  deepseek-harness config show [--dir DIR]
+# Agent instructions: ~/.dsh/AGENTS.md (global) and AGENTS.md / AGENTS.local.md (project).
+# Environment:        ~/.dsh/.env (global) and <project>/.env (local) — never commit keys.
+[]
+EOF
+}
+
+config() {
+  local scope="$1" dir="$2" edit="$3" file args=()
+  case "$scope" in
+    global) file="$DSH_HOME_DIR/cordis.patch.yml" ;;
+    local) file="$dir/.dsh/cordis.patch.yml" ;;
+    show)
+      require_dsh
+      args=(--profile web)
+      [[ -f "$dir/.dsh/cordis.patch.yml" ]] && args+=(--patch "$dir/.dsh/cordis.patch.yml")
+      cd "$dir" && exec "$DSH_DESKTOP_DSH_BIN" "${args[@]}" --dump-config
+      ;;
+    *) usage 1 ;;
+  esac
+
+  if [[ ! -f "$file" ]]; then
+    mkdir -p "$(dirname "$file")"
+    patch_template "$scope" > "$file"
+  fi
+  if [[ "$edit" == 1 ]]; then
+    setsid xdg-open "$file" > /dev/null 2>&1 < /dev/null &
+  fi
+  printf '%s\n' "$file"
+}
+
+cmd="${1:-start}"
+[[ $# -gt 0 ]] && shift
+case "$cmd" in
+  _window)
+    app_window "$@"
+    exit 0
+    ;;
+  version | --version)
+    echo "deepseek-harness-desktop $VERSION"
+    exit 0
+    ;;
+  help | -h | --help) usage 0 ;;
+esac
+scope=""
+if [[ "$cmd" == config ]]; then
+  scope="${1:-}"
+  [[ $# -gt 0 ]] && shift
+fi
+
+dir="" print_url=0 all=0 edit=0
+open="$([[ "$DSH_DESKTOP_APP_MODE" == 1 ]] && echo app || echo tab)"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dir) [[ $# -ge 2 ]] || usage 1; dir="$2"; shift ;;
+    --menu) dir="$DSH_DESKTOP_WORKSPACE" ;;
+    --app) open=app ;;
+    --tab) open=tab ;;
+    --no-open) open=none ;;
+    --print-url) print_url=1 ;;
+    --all) all=1 ;;
+    --edit) edit=1 ;;
+    -h | --help) usage 0 ;;
+    *) usage 1 ;;
+  esac
+  shift
+done
+dir="$(resolve_dir "${dir:-$PWD}")"
+
+case "$cmd" in
+  start) start "$dir" "$open" "$print_url" ;;
+  stop)
+    if [[ "$all" == 1 ]]; then
+      for state in "$STATE_ROOT"/*/; do [[ -d "$state" ]] && stop_state "${state%/}"; done
+    else
+      stop_state "$(state_dir "$dir")"
+    fi
+    ;;
+  status)
+    if [[ "$all" == 1 ]]; then
+      any=0
+      for state in "$STATE_ROOT"/*/; do
+        [[ -d "$state" ]] && status_state "${state%/}" && any=1
+      done
+      [[ "$any" == 1 ]] || { echo "stopped"; exit 3; }
+    else
+      status_state "$(state_dir "$dir")" || { echo "stopped"; exit 3; }
+    fi
+    ;;
+  config) config "$scope" "$dir" "$edit" ;;
+  *) usage 1 ;;
+esac

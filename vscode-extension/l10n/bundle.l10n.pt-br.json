@@ -1,0 +1,19 @@
+{
+  "Launcher not found at {0}. Run install.sh from deepseek-harness-desktop.": "Launcher não encontrado em {0}. Rode o install.sh do deepseek-harness-desktop.",
+  "DeepSeek Harness is **running** for this folder — click to open": "DeepSeek Harness **rodando** nesta pasta — clique para abrir",
+  "Click to start DeepSeek Harness for this folder": "Clique para iniciar o DeepSeek Harness nesta pasta",
+  "Stop": "Parar",
+  "Global config": "Config. global",
+  "Local config": "Config. local",
+  "Starting DeepSeek Harness…": "Iniciando DeepSeek Harness…",
+  "DeepSeek Harness was not running for this folder.": "O DeepSeek Harness não estava rodando nesta pasta.",
+  "No DeepSeek Harness instance is running.": "Nenhuma instância do DeepSeek Harness rodando.",
+  "DeepSeek Harness: open a folder to use a local configuration.": "DeepSeek Harness: abra uma pasta para ter configuração local.",
+  "The local configuration applies on the next start (stop, then start).": "A configuração local vale a partir do próximo início (Parar e Iniciar).",
+  "Start / open": "Iniciar / abrir",
+  "Stop (this folder)": "Parar (esta pasta)",
+  "Stop all instances": "Parar todas as instâncias",
+  "Open global configuration": "Abrir configuração global",
+  "Open local (project) configuration": "Abrir configuração local (projeto)",
+  "Show effective configuration": "Mostrar configuração efetiva"
+}

@@ -1,0 +1,16 @@
+{
+  "displayName": "DeepSeek Harness Desktop",
+  "description": "Status bar button that starts the DeepSeek Harness (dsh) installed on this computer, with access to its global and local configuration. Unofficial.",
+  "command.start": "Start / open",
+  "command.stop": "Stop (this folder)",
+  "command.stopAll": "Stop all instances",
+  "command.openGlobalConfig": "Open global configuration",
+  "command.openLocalConfig": "Open local (project) configuration",
+  "command.showConfig": "Show effective configuration",
+  "command.menu": "Menu",
+  "config.launcherPath": "DeepSeek Harness launcher installed on this computer (the same one the application menu uses).",
+  "config.openIn": "Where to open the DeepSeek Harness interface.",
+  "config.openIn.window": "Standalone app window (same as the application menu).",
+  "config.openIn.browser": "A tab in the default browser.",
+  "config.openIn.vscode": "Simple Browser, inside VS Code."
+}

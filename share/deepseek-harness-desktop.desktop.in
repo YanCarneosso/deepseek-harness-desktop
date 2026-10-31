@@ -1,0 +1,26 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=DeepSeek Harness
+GenericName=DeepSeek coding agent
+GenericName[pt_BR]=Agente de código DeepSeek
+Comment=Opens DeepSeek Harness (dsh) as a standalone app window
+Comment[pt_BR]=Abre o DeepSeek Harness (dsh) como app em janela própria
+Exec=@BINDIR@/deepseek-harness start --menu
+Icon=deepseek-harness-desktop
+Terminal=false
+Categories=Development;
+Keywords=deepseek;dsh;ai;agent;llm;ia;agente;
+StartupNotify=false
+StartupWMClass=chrome-@APP_HOST@__-Default
+Actions=Stop;GlobalConfig;
+
+[Desktop Action Stop]
+Name=Stop DeepSeek Harness
+Name[pt_BR]=Parar o DeepSeek Harness
+Exec=@BINDIR@/deepseek-harness stop --all
+
+[Desktop Action GlobalConfig]
+Name=Edit global configuration
+Name[pt_BR]=Editar configuração global
+Exec=@BINDIR@/deepseek-harness config global --edit

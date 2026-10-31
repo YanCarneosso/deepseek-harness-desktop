@@ -1,0 +1,90 @@
+{
+  "name": "deepseek-harness",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.1.0",
+  "publisher": "deepseek-harness-desktop",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YanCarneosso/deepseek-harness-desktop.git",
+    "directory": "vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "main": "./extension.js",
+  "l10n": "./l10n",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "deepseekHarness.start",
+        "title": "%command.start%",
+        "category": "DeepSeek Harness",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "deepseekHarness.stop",
+        "title": "%command.stop%",
+        "category": "DeepSeek Harness"
+      },
+      {
+        "command": "deepseekHarness.stopAll",
+        "title": "%command.stopAll%",
+        "category": "DeepSeek Harness"
+      },
+      {
+        "command": "deepseekHarness.openGlobalConfig",
+        "title": "%command.openGlobalConfig%",
+        "category": "DeepSeek Harness"
+      },
+      {
+        "command": "deepseekHarness.openLocalConfig",
+        "title": "%command.openLocalConfig%",
+        "category": "DeepSeek Harness"
+      },
+      {
+        "command": "deepseekHarness.showConfig",
+        "title": "%command.showConfig%",
+        "category": "DeepSeek Harness"
+      },
+      {
+        "command": "deepseekHarness.menu",
+        "title": "%command.menu%",
+        "category": "DeepSeek Harness"
+      }
+    ],
+    "configuration": {
+      "title": "DeepSeek Harness",
+      "properties": {
+        "deepseekHarness.launcherPath": {
+          "type": "string",
+          "default": "~/.local/bin/deepseek-harness",
+          "description": "%config.launcherPath%"
+        },
+        "deepseekHarness.openIn": {
+          "type": "string",
+          "enum": [
+            "window",
+            "browser",
+            "vscode"
+          ],
+          "enumDescriptions": [
+            "%config.openIn.window%",
+            "%config.openIn.browser%",
+            "%config.openIn.vscode%"
+          ],
+          "default": "window",
+          "description": "%config.openIn%"
+        }
+      }
+    }
+  }
+}

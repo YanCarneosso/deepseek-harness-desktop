@@ -1,0 +1,46 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Problems in DeepSeek Harness itself belong upstream:
+        https://github.com/deepseek-ai/deepseek-harness. **Remove tokens (`?token=...`) and API keys
+        from anything you paste.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. deepseek-harness start --dir ~/project
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `deepseek-harness version; dsh --version; node --version`
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Distribution, desktop (KDE/GNOME…), Wayland or X11, browser used for app mode
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from `~/.local/state/deepseek-harness-desktop/*/log` or `window.log`
+      render: text

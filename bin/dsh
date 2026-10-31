@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# dsh wrapper: runs the pinned DeepSeek Harness CLI that install.sh placed in ~/.local/lib/dsh.
+set -euo pipefail
+
+BIN="${DSH_DESKTOP_LIB:-$HOME/.local/lib/dsh}/node_modules/@deepseek-ai/dsh/lib/bin.js"
+
+if [[ ! -f "$BIN" ]]; then
+  echo "dsh: not installed in ~/.local/lib/dsh. Run install.sh from deepseek-harness-desktop." >&2
+  exit 1
+fi
+
+exec node "$BIN" "$@"

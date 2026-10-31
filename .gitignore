@@ -1,0 +1,17 @@
+# Build output
+dist/
+*.vsix
+
+# Dependencies (never committed; dsh is installed by install.sh)
+node_modules/
+
+# Local dsh configuration and secrets of anyone testing inside the checkout
+.dsh/
+.env
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.directory
+.DS_Store
