@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Removed
+
+- The test suite is no longer part of the repository; CI runs lint and packaging only.
+
 ## [0.1.0] — 2026-10-31
 
 First public release. Tested on Arch-based Linux (KDE Plasma 6, Wayland) with Chromium 156 and

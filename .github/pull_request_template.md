@@ -9,7 +9,7 @@
 ## Checklist
 
 - [ ] `make check` passes
-- [ ] New launcher behaviour is covered in `tests/run.sh`
+- [ ] Launcher changes were tried manually (menu entry, app window, VS Code button)
 - [ ] User-facing extension strings are translated (pt-BR)
 - [ ] `CHANGELOG.md` updated under *Unreleased*
 - [ ] No tokens or API keys in code, logs or screenshots

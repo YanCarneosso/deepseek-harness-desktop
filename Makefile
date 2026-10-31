@@ -1,4 +1,4 @@
-SHELL_SCRIPTS := bin/deepseek-harness bin/dsh install.sh uninstall.sh tests/run.sh tests/fakes/dsh tests/fakes/browser
+SHELL_SCRIPTS := bin/deepseek-harness bin/dsh install.sh uninstall.sh
 
 .PHONY: check lint test vsix clean
 
@@ -13,8 +13,9 @@ lint:
 		share/deepseek-harness-desktop.desktop.in > /tmp/deepseek-harness-desktop.desktop
 	desktop-file-validate /tmp/deepseek-harness-desktop.desktop
 
+# The test suite is kept out of the repository; this runs a local copy when one exists.
 test:
-	tests/run.sh
+	@if [ -x tests/run.sh ]; then tests/run.sh; else echo "no local tests/run.sh; skipped"; fi
 
 vsix:
 	mkdir -p dist

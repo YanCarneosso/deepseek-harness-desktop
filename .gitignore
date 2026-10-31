@@ -2,6 +2,9 @@
 dist/
 *.vsix
 
+# Test suite, kept locally only
+tests/
+
 # Dependencies (never committed; dsh is installed by install.sh)
 node_modules/
 

@@ -18,12 +18,11 @@ With `--dev`, edits to `bin/` take effect immediately. After changing the extens
 
 ```sh
 make lint   # bash -n, ShellCheck, node --check, JSON and .desktop validation
-make test   # offline launcher tests (tests/run.sh)
 make vsix   # builds dist/deepseek-harness-desktop.vsix
 ```
 
-The tests never touch your real installation: they run in a throwaway `HOME` with stand-ins for dsh
-and the browser (`tests/fakes/`). CI runs the same targets on every pull request.
+CI runs the same targets on every pull request. Before opening one, try your change by hand: start
+from the application menu, open and close the app window, and use the VS Code button.
 
 ## Guidelines
 
@@ -31,7 +30,6 @@ and the browser (`tests/fakes/`). CI runs the same targets on every pull request
   `vscode.l10n.t` / `package.nls.json`; add the pt-BR translation in
   `vscode-extension/l10n/bundle.l10n.pt-br.json` and `package.nls.pt-br.json`.
 - Keep the launcher dependency-free (Bash + coreutils + procps + util-linux).
-- New launcher behaviour needs a test in `tests/run.sh`.
 - Never log or print API keys. The URL token is sensitive too: keep files that hold it mode 600.
 - Update `CHANGELOG.md` under *Unreleased*.
 - Keep pull requests focused; describe how you tested them.

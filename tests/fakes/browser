@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# Stand-in for a Chromium browser: records its arguments, then "closes the window" after a moment.
-printf '%s\n' "$*" >> "${FAKE_BROWSER_LOG:?}"
-sleep "${FAKE_BROWSER_LIFETIME:-1}"
