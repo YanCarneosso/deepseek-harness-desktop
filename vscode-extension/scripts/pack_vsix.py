@@ -10,8 +10,9 @@ from xml.sax.saxutils import escape
 
 EXTENSION = Path(__file__).resolve().parent.parent
 REPO = EXTENSION.parent
-FILES = ["package.json", "package.nls.json", "package.nls.pt-br.json", "extension.js",
-         "README.md", "CHANGELOG.md", "icon.png"]
+FILES = ["package.json", "package.nls.json", "package.nls.pt-br.json", "extension.js", "acp.js",
+         "chat.js", "README.md", "CHANGELOG.md", "icon.png"]
+DIRECTORIES = ["l10n", "media"]
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -19,6 +20,8 @@ CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
   <Default Extension=".js" ContentType="application/javascript"/>
   <Default Extension=".md" ContentType="text/markdown"/>
   <Default Extension=".png" ContentType="image/png"/>
+  <Default Extension=".svg" ContentType="image/svg+xml"/>
+  <Default Extension=".css" ContentType="text/css"/>
   <Default Extension=".txt" ContentType="text/plain"/>
   <Default Extension=".vsixmanifest" ContentType="text/xml"/>
 </Types>
@@ -75,8 +78,10 @@ def main():
         vsix.writestr("extension.vsixmanifest", manifest(pkg, nls))
         for name in FILES:
             vsix.write(EXTENSION / name, f"extension/{name}")
-        for bundle in sorted((EXTENSION / "l10n").glob("*.json")):
-            vsix.write(bundle, f"extension/l10n/{bundle.name}")
+        for directory in DIRECTORIES:
+            for file in sorted((EXTENSION / directory).iterdir()):
+                if file.is_file():
+                    vsix.write(file, f"extension/{directory}/{file.name}")
         vsix.write(REPO / "LICENSE", "extension/LICENSE.txt")
 
 

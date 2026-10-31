@@ -1,0 +1,155 @@
+/* Chat view styles. Colors and fonts come from the active VS Code theme. */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+button {
+  font: inherit;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+button:hover { background: var(--vscode-button-hoverBackground); }
+button:focus-visible, select:focus-visible, textarea:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+button.secondary, button.icon, button.chip {
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  background: var(--vscode-button-secondaryBackground, transparent);
+}
+button.secondary:hover, button.icon:hover, button.chip:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+}
+button.danger { background: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
+
+code, pre { font-family: var(--vscode-editor-font-family); font-size: var(--vscode-editor-font-size); }
+
+/* ------------------------------------------------------------------ toolbar */
+#toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--vscode-panel-border, transparent);
+}
+#toolbar select {
+  min-width: 0;
+  max-width: 45%;
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border, transparent);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+#toolbar[hidden] { display: none; }
+
+/* --------------------------------------------------------------- transcript */
+#transcript {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.empty { margin: auto; text-align: center; color: var(--vscode-descriptionForeground); }
+.empty code { word-break: break-all; }
+
+.msg { border-radius: 6px; padding: 6px 10px; line-height: 1.45; overflow-wrap: anywhere; }
+.msg.user {
+  align-self: flex-end;
+  max-width: 92%;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  white-space: pre-wrap;
+}
+.msg.user .attachment { margin-top: 4px; font-size: 0.85em; color: var(--vscode-descriptionForeground); }
+.msg.agent { padding-left: 2px; padding-right: 2px; }
+.msg.agent p { margin: 0 0 6px; }
+.msg.agent h4 { margin: 8px 0 4px; }
+.msg.agent ul { margin: 0 0 6px; padding-left: 20px; }
+.msg code, .tool code, .permission code {
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+pre {
+  margin: 4px 0;
+  padding: 6px 8px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 4px;
+}
+pre code { background: none; padding: 0; }
+
+.thought { color: var(--vscode-descriptionForeground); font-size: 0.92em; }
+.thought summary { cursor: pointer; }
+.thought .body { white-space: pre-wrap; padding: 4px 0 0 14px; }
+
+.tool, .permission {
+  border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.92em;
+}
+.tool .head { display: flex; gap: 6px; align-items: center; }
+.tool .title { flex: 1; font-weight: 600; }
+.tool .badge { color: var(--vscode-descriptionForeground); }
+.tool[data-status="completed"] .badge { color: var(--vscode-testing-iconPassed, var(--vscode-charts-green)); }
+.tool[data-status="failed"] .badge { color: var(--vscode-errorForeground); }
+.tool .input, .permission .input { display: block; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
+.tool .output summary { cursor: pointer; margin-top: 4px; color: var(--vscode-descriptionForeground); }
+.diff .path { margin-top: 4px; font-weight: 600; }
+.diff .ins { background: var(--vscode-diffEditor-insertedTextBackground); }
+.diff .del { background: var(--vscode-diffEditor-removedTextBackground); }
+
+.permission { border-color: var(--vscode-focusBorder); }
+.permission .title { font-weight: 600; }
+.permission .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.permission .answer { margin-top: 4px; color: var(--vscode-descriptionForeground); }
+
+.notice { font-size: 0.92em; padding: 4px 8px; border-left: 3px solid var(--vscode-descriptionForeground); }
+.notice.error { border-color: var(--vscode-errorForeground); color: var(--vscode-errorForeground); }
+
+/* ----------------------------------------------------------------- composer */
+#composer {
+  padding: 8px;
+  border-top: 1px solid var(--vscode-panel-border, transparent);
+}
+#composer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 52px;
+  max-height: 40vh;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font: inherit;
+}
+#composer textarea::placeholder { color: var(--vscode-input-placeholderForeground); }
+#composer .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+#composer .chip { max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 8px; font-size: 0.9em; }
+#composer .chip.off { opacity: 0.55; text-decoration: line-through; }
+#composer .status, #composer .usage { color: var(--vscode-descriptionForeground); font-size: 0.85em; white-space: nowrap; }
+#composer .status { flex: 1; }
+#composer .pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { #composer .pulse { animation: none; } }

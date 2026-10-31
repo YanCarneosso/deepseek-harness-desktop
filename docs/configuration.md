@@ -18,6 +18,12 @@ dsh composes its configuration from YAML patch layers. Later layers win:
 Layer 4 is not read by dsh on its own: the launcher passes it with `dsh --patch` when the file
 exists. If you start dsh by hand, pass it yourself: `dsh web --patch .dsh/cordis.patch.yml`.
 
+The VS Code chat runs dsh's `acp` profile instead of `web`, so its layer 2 is
+`~/.dsh/profiles/acp/cordis.patch.yml`, and the web app's Settings screen does not affect it.
+Layers 3 and 4 apply to both profiles, which makes them the place for settings you want everywhere.
+The `acp` profile starts sessions on `deepseek-v4-flash`. The model and reasoning effort can be
+changed per chat from the chat's selectors.
+
 Things to know:
 
 - A field set in layer 3 or 4 can no longer be changed from the Settings screen; dsh refuses the

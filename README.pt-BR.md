@@ -3,8 +3,8 @@
 [English](README.md) | Português (Brasil)
 
 Integração desktop do [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
-para Linux: abra pelo menu de aplicativos como app em janela própria, inicie por um botão na barra de
-status do VS Code e gerencie as configurações global e por projeto.
+para Linux: abra pelo menu de aplicativos como app em janela própria, converse com ele dentro do
+VS Code e gerencie as configurações global e por projeto.
 
 > **Projeto não oficial.** Sem vínculo, endosso ou suporte da DeepSeek.
 > O DeepSeek Harness está em *developer preview*; espere mudanças incompatíveis no projeto original.
@@ -15,8 +15,10 @@ status do VS Code e gerencie as configurações global e por projeto.
   isolado e ícone próprio na barra de tarefas (inclusive no Wayland). Fechar a janela para o servidor
   que ela iniciou.
 - **Atalho no menu de aplicativos** com as ações *Parar* e *Editar configuração global*.
-- **Extensão do VS Code**: botão 🚀 DeepSeek na barra de status que inicia o dsh para a pasta aberta.
-  Interface em inglês e português.
+- **Chat no VS Code**: converse com o agente dsh num chat na barra lateral, como nas extensões do
+  Claude Code, Codex e OpenCode, pelo protocolo padrão Agent Client Protocol. Mostra ferramentas,
+  diffs e pedidos de permissão, e permite escolher modelo e esforço de raciocínio. Interface em
+  inglês e português.
 - **Uma instância por pasta**, cada uma na sua porta (a partir de 3080), compartilhada entre menu,
   VS Code e terminal.
 - **Configuração global e local**: `~/.dsh/cordis.patch.yml` para todos os projetos e
@@ -59,7 +61,8 @@ Depois, informe sua chave de API ao dsh de uma destas formas:
 ## Uso
 
 - **Menu**: abra *DeepSeek Harness*.
-- **VS Code**: recarregue a janela e clique em **🚀 DeepSeek** na barra de status.
+- **VS Code**: recarregue a janela e abra o chat **DeepSeek Harness** pela barra de atividades ou
+  clique em **DeepSeek** na barra de status. Veja o [README da extensão](vscode-extension/README.md).
 - **Terminal**:
 
 ```sh

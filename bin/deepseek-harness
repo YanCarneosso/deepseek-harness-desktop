@@ -40,6 +40,7 @@ Usage:
   deepseek-harness status [--dir DIR | --all]
   deepseek-harness config global|local [--dir DIR] [--edit]   # create if missing, print the path
   deepseek-harness config show [--dir DIR]                    # effective config (dsh --dump-config)
+  deepseek-harness acp [--dir DIR]       # ACP agent over stdio, for editor chat clients
   deepseek-harness version
 
 Without --dir the current directory is used; --menu uses DSH_DESKTOP_WORKSPACE.
@@ -277,6 +278,16 @@ config() {
   printf '%s\n' "$file"
 }
 
+# Hands stdin/stdout to dsh's ACP profile (newline-delimited JSON-RPC), with the same API key and
+# local patch as the web app. Stdout must carry protocol frames only, so nothing is printed here.
+acp() {
+  local dir="$1" args=(--profile acp)
+  require_dsh
+  [[ -f "$dir/.dsh/cordis.patch.yml" ]] && args+=(--patch "$dir/.dsh/cordis.patch.yml")
+  api_key
+  cd "$dir" && exec "$DSH_DESKTOP_DSH_BIN" "${args[@]}"
+}
+
 cmd="${1:-start}"
 [[ $# -gt 0 ]] && shift
 case "$cmd" in
@@ -336,5 +347,6 @@ case "$cmd" in
     fi
     ;;
   config) config "$scope" "$dir" "$edit" ;;
+  acp) acp "$dir" ;;
   *) usage 1 ;;
 esac

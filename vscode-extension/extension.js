@@ -1,8 +1,9 @@
-// DeepSeek Harness Desktop: a status bar button that starts the dsh installed on this computer for
-// the workspace folder, through the same launcher the application menu uses.
+// DeepSeek Harness Desktop: a chat view in the sidebar backed by the dsh installed on this computer
+// (over ACP), plus commands for its web app — all through the same launcher the application menu uses.
 const vscode = require('vscode');
 const { execFile } = require('child_process');
 const os = require('os');
+const { ChatViewProvider } = require('./chat');
 
 const STATUS_INTERVAL_MS = 20000;
 const t = vscode.l10n.t;
@@ -55,30 +56,45 @@ async function openFile(path) {
 }
 
 function activate(context) {
-  const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  item.command = 'deepseekHarness.start';
-  context.subscriptions.push(item);
+  const output = vscode.window.createOutputChannel('DeepSeek Harness');
+  const chat = new ChatViewProvider(context, { launcher, workspaceDir, output });
+  context.subscriptions.push(
+    output,
+    vscode.window.registerWebviewViewProvider('deepseekHarness.chat', chat, {
+      webviewOptions: { retainContextWhenHidden: true },
+    })
+  );
 
-  async function refreshStatus() {
-    let running = false;
-    try {
-      await run(['status', ...dirArgs()], 15000);
-      running = true;
-    } catch {
-      running = false;
-    }
-    item.text = running ? '$(rocket) DeepSeek $(circle-filled)' : '$(rocket) DeepSeek';
+  const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  item.command = 'deepseekHarness.openChat';
+  context.subscriptions.push(item);
+  let webAppRunning = false;
+
+  function renderStatus() {
+    const icon = chat.busy ? '$(loading~spin)' : '$(comment-discussion)';
+    item.text = `${icon} DeepSeek${webAppRunning ? ' $(circle-filled)' : ''}`;
     const tooltip = new vscode.MarkdownString(
-      (running
-        ? t('DeepSeek Harness is **running** for this folder — click to open')
-        : t('Click to start DeepSeek Harness for this folder'))
-      + `\n\n[${t('Stop')}](command:deepseekHarness.stop) · `
-      + `[${t('Global config')}](command:deepseekHarness.openGlobalConfig) · `
+      t('Click to open the DeepSeek Harness chat')
+      + (webAppRunning ? `\n\n${t('The web app is **running** for this folder.')}` : '')
+      + `\n\n[${t('Open web app')}](command:deepseekHarness.start) · `
+      + `[${t('Stop web app')}](command:deepseekHarness.stop)`
+      + `\n\n[${t('Global config')}](command:deepseekHarness.openGlobalConfig) · `
       + `[${t('Local config')}](command:deepseekHarness.openLocalConfig)`
     );
     tooltip.isTrusted = true;
     item.tooltip = tooltip;
     item.show();
+  }
+  context.subscriptions.push(chat.onDidChangeBusy.event(renderStatus));
+
+  async function refreshStatus() {
+    try {
+      await run(['status', ...dirArgs()], 15000);
+      webAppRunning = true;
+    } catch {
+      webAppRunning = false;
+    }
+    renderStatus();
   }
 
   async function stop(args, idleMessage) {
@@ -92,6 +108,13 @@ function activate(context) {
   }
 
   const commands = {
+    'deepseekHarness.openChat': () => vscode.commands.executeCommand('deepseekHarness.chat.focus'),
+
+    'deepseekHarness.newChat': async () => {
+      await vscode.commands.executeCommand('deepseekHarness.chat.focus');
+      await chat.newChat();
+    },
+
     'deepseekHarness.start': async () => {
       const openIn = vscode.workspace.getConfiguration('deepseekHarness').get('openIn');
       // In window mode the launcher opens the app itself; otherwise the extension opens the URL.
@@ -146,7 +169,9 @@ function activate(context) {
 
     'deepseekHarness.menu': async () => {
       const options = [
-        { label: `$(rocket) ${t('Start / open')}`, command: 'deepseekHarness.start' },
+        { label: `$(comment-discussion) ${t('Open chat')}`, command: 'deepseekHarness.openChat' },
+        { label: `$(add) ${t('New chat')}`, command: 'deepseekHarness.newChat' },
+        { label: `$(rocket) ${t('Open web app')}`, command: 'deepseekHarness.start' },
         { label: `$(debug-stop) ${t('Stop (this folder)')}`, command: 'deepseekHarness.stop' },
         { label: `$(debug-stop) ${t('Stop all instances')}`, command: 'deepseekHarness.stopAll' },
         { label: `$(globe) ${t('Open global configuration')}`, command: 'deepseekHarness.openGlobalConfig' },

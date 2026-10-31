@@ -24,12 +24,72 @@
     "onStartupFinished"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "deepseekHarness",
+          "title": "DeepSeek Harness",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "deepseekHarness": [
+        {
+          "type": "webview",
+          "id": "deepseekHarness.chat",
+          "name": "%view.chat%"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "deepseekHarness.newChat",
+          "when": "view == deepseekHarness.chat",
+          "group": "navigation@1"
+        },
+        {
+          "command": "deepseekHarness.start",
+          "when": "view == deepseekHarness.chat",
+          "group": "navigation@2"
+        },
+        {
+          "command": "deepseekHarness.openLocalConfig",
+          "when": "view == deepseekHarness.chat",
+          "group": "config@1"
+        },
+        {
+          "command": "deepseekHarness.openGlobalConfig",
+          "when": "view == deepseekHarness.chat",
+          "group": "config@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "deepseekHarness.openChat",
+          "group": "navigation@100"
+        }
+      ]
+    },
     "commands": [
+      {
+        "command": "deepseekHarness.openChat",
+        "title": "%command.openChat%",
+        "category": "DeepSeek Harness",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "deepseekHarness.newChat",
+        "title": "%command.newChat%",
+        "category": "DeepSeek Harness",
+        "icon": "$(add)"
+      },
       {
         "command": "deepseekHarness.start",
         "title": "%command.start%",
         "category": "DeepSeek Harness",
-        "icon": "$(rocket)"
+        "icon": "$(link-external)"
       },
       {
         "command": "deepseekHarness.stop",

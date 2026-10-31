@@ -1,7 +1,10 @@
 {
   "displayName": "DeepSeek Harness Desktop",
-  "description": "Status bar button that starts the DeepSeek Harness (dsh) installed on this computer, with access to its global and local configuration. Unofficial.",
-  "command.start": "Start / open",
+  "description": "Chat with the DeepSeek Harness (dsh) agent installed on this computer, right in VS Code, plus its web app and global/local configuration. Unofficial.",
+  "view.chat": "Chat",
+  "command.openChat": "Open chat",
+  "command.newChat": "New chat",
+  "command.start": "Open web app",
   "command.stop": "Stop (this folder)",
   "command.stopAll": "Stop all instances",
   "command.openGlobalConfig": "Open global configuration",

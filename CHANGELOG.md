@@ -6,10 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- VS Code chat view: a sidebar chat with the dsh agent over the Agent Client Protocol, like the
+  Claude Code, Codex and OpenCode extensions (model and reasoning effort, tool calls with diffs,
+  inline permissions, context usage, cancel, new chat, active file attached as context).
+- `deepseek-harness acp [--dir DIR]`: runs dsh's ACP profile over stdio with the same API key and
+  local patch as the web app.
+
 ### Changed
 
 - New application icon: a friendly whale whose spout is a `>_` prompt.
 - The VS Code extension shows the same icon in the Extensions view.
+- The VS Code status bar item now opens the chat; the web app is under **Open web app**.
 
 ### Removed
 

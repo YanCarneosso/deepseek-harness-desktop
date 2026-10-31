@@ -6,6 +6,8 @@
  terminal ──────────┘            │                                                   ▲
                                  └──► Chromium --app (isolated profile) ─────────────┘
                                        http://dsh.localhost:PORT
+
+ VS Code chat view ◄── ACP (JSON-RPC over stdio) ──► deepseek-harness acp ──► dsh --profile acp
 ```
 
 Everything goes through one Bash launcher, `bin/deepseek-harness`. The menu entry and the VS Code
@@ -67,6 +69,36 @@ over the officially supported web profile gives a comparable experience with not
 ## VS Code extension
 
 `vscode-extension/` is plain JavaScript with no dependencies or build step. `scripts/pack_vsix.py`
-assembles the `.vsix` (manifest, content types, `l10n/` bundles, license) with the Python standard
-library, so neither `vsce` nor npm packages are needed. Runtime strings use `vscode.l10n.t`;
-contributed titles use `package.nls*.json`.
+assembles the `.vsix` (manifest, content types, `l10n/` and `media/`, license) with the Python
+standard library, so neither `vsce` nor npm packages are needed. Runtime strings use
+`vscode.l10n.t`; contributed titles use `package.nls*.json`.
+
+### Chat over ACP
+
+The chat view is a client of the [Agent Client Protocol](https://agentclientprotocol.com), the same
+standard editors use to embed coding agents. dsh implements it in its `acp` profile.
+
+| File | Role |
+|---|---|
+| `acp.js` | Minimal ACP v1 client: newline-delimited JSON-RPC 2.0 over a child process's stdio, request/response matching, `session/update` notifications, `session/request_permission` requests |
+| `chat.js` | Webview view provider: one agent process per workspace folder (`deepseek-harness acp --dir DIR`), one ACP session per chat, permissions, active-file context, model/effort options |
+| `media/chat.js`, `media/chat.css` | Webview UI. Agent and tool text is inserted with DOM APIs and `textContent` only, under a strict Content Security Policy with a per-load script nonce |
+
+Flow:
+
+1. When the view opens, the extension starts `deepseek-harness acp --dir <folder>`, which applies
+   the API key and local patch and `exec`s `dsh --profile acp` in that folder.
+2. `initialize` declares no client filesystem or terminal capability: dsh uses its own local tools.
+3. `session/new` returns the session id and its `model` and `reasoning_effort` options, which the
+   UI shows as selectors and changes through `session/set_config_option`.
+4. `session/prompt` carries the text plus, when attached, a `resource_link` to the active file
+   (with a `#Lstart-end` fragment for a selection).
+5. `session/update` notifications render as they arrive: messages, thoughts, tool calls and their
+   updates (output and diffs) and `usage_update`.
+6. **Stop** sends `session/cancel`; **New chat** sends `session/close` and opens a new session.
+   Closing VS Code ends stdin, which dsh treats as a graceful shutdown.
+
+The `acp` profile is separate from the `web` profile: settings saved in the web app's Settings
+screen do not apply to the chat, while `~/.dsh/cordis.patch.yml` and the project's
+`.dsh/cordis.patch.yml` apply to both. dsh's ACP surface is deliberately standard. It has no
+transcript replay, so a reopened VS Code starts a new chat, and it has no plan or todo cards.
