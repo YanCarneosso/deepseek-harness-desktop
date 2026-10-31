@@ -5,7 +5,7 @@ SHELL_SCRIPTS := bin/deepseek-harness bin/dsh install.sh uninstall.sh tests/run.
 check: lint test
 
 lint:
-	bash -n $(SHELL_SCRIPTS)
+	for f in $(SHELL_SCRIPTS); do bash -n "$$f" || exit 1; done
 	shellcheck -S warning $(SHELL_SCRIPTS)
 	node --check vscode-extension/extension.js
 	for f in vscode-extension/*.json vscode-extension/l10n/*.json; do python3 -m json.tool "$$f" > /dev/null || exit 1; done

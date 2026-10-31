@@ -29,8 +29,7 @@ check() {
   if "$@"; then ok "$name"; else not_ok "$name"; fi
 }
 wait_until() {
-  local i
-  for i in $(seq 1 40); do "$@" 2> /dev/null && return 0; sleep 0.25; done
+  for _ in $(seq 1 40); do "$@" 2> /dev/null && return 0; sleep 0.25; done
   return 1
 }
 is_stopped() { ! "$LAUNCHER" status --dir "$WS" > /dev/null 2>&1; }
