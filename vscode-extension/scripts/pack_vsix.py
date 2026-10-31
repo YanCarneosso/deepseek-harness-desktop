@@ -11,13 +11,14 @@ from xml.sax.saxutils import escape
 EXTENSION = Path(__file__).resolve().parent.parent
 REPO = EXTENSION.parent
 FILES = ["package.json", "package.nls.json", "package.nls.pt-br.json", "extension.js",
-         "README.md", "CHANGELOG.md"]
+         "README.md", "CHANGELOG.md", "icon.png"]
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension=".json" ContentType="application/json"/>
   <Default Extension=".js" ContentType="application/javascript"/>
   <Default Extension=".md" ContentType="text/markdown"/>
+  <Default Extension=".png" ContentType="image/png"/>
   <Default Extension=".txt" ContentType="text/plain"/>
   <Default Extension=".vsixmanifest" ContentType="text/xml"/>
 </Types>
@@ -47,6 +48,7 @@ def manifest(pkg, nls):
       <Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="workspace"/>
     </Properties>
     <License>extension/LICENSE.txt</License>
+    <Icon>extension/{escape(pkg['icon'])}</Icon>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Code"/>
@@ -57,6 +59,7 @@ def manifest(pkg, nls):
     <Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true"/>
     <Asset Type="Microsoft.VisualStudio.Services.Content.Changelog" Path="extension/CHANGELOG.md" Addressable="true"/>
     <Asset Type="Microsoft.VisualStudio.Services.Content.License" Path="extension/LICENSE.txt" Addressable="true"/>
+    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/{escape(pkg['icon'])}" Addressable="true"/>
   </Assets>
 </PackageManifest>
 """

@@ -1,6 +1,6 @@
 SHELL_SCRIPTS := bin/deepseek-harness bin/dsh install.sh uninstall.sh
 
-.PHONY: check lint test vsix clean
+.PHONY: check lint test vsix icon clean
 
 check: lint test
 
@@ -20,6 +20,10 @@ test:
 vsix:
 	mkdir -p dist
 	python3 -I vscode-extension/scripts/pack_vsix.py dist/deepseek-harness-desktop.vsix
+
+# Regenerates the extension icon from the application icon (needs rsvg-convert).
+icon:
+	rsvg-convert -w 128 -h 128 share/deepseek-harness-desktop.svg -o vscode-extension/icon.png
 
 clean:
 	rm -rf dist

@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows
 ### Changed
 
 - New application icon: a friendly whale whose spout is a `>_` prompt.
+- The VS Code extension shows the same icon in the Extensions view.
 
 ### Removed
 
