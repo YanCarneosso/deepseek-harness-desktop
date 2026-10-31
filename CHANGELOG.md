@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- New application icon: a friendly whale whose spout is a `>_` prompt.
+
 ### Removed
 
 - The test suite is no longer part of the repository; CI runs lint and packaging only.
