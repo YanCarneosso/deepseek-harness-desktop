@@ -1,6 +1,17 @@
-# deepseek-harness-desktop
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/cover-dark.svg">
+  <img src="docs/assets/cover-light.svg" width="100%" alt="DeepSeek Harness Desktop — coding agent on the desktop and in VS Code, over the Agent Client Protocol.">
+</picture>
 
-English | [Português (Brasil)](README.pt-BR.md)
+<p align="center">
+  English | <a href="README.pt-BR.md">Português (Brasil)</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/YanCarneosso/deepseek-harness-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/YanCarneosso/deepseek-harness-desktop/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-334155"></a>
+  <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-Linux-FCC624?logo=linux&logoColor=black">
+</p>
 
 Desktop integration for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
 on Linux: open it from your application menu as a standalone app window, chat with it inside
@@ -8,6 +19,18 @@ VS Code, and manage its global and per-project configuration.
 
 > **Unofficial project.** Not affiliated with, endorsed by or supported by DeepSeek.
 > DeepSeek Harness itself is in developer preview; expect breaking changes upstream.
+
+## At a glance
+
+- **What it is:** a Linux desktop integration for the DeepSeek Harness coding agent: standalone
+  app window, application menu entry and a chat inside VS Code.
+- **How it works:** Chromium app mode with an isolated profile; a VS Code extension that speaks the
+  Agent Client Protocol (tool calls, diffs, permission prompts, model and reasoning-effort
+  selection); one instance per folder on its own port; layered global and per-project configuration.
+- **Engineering:** per-user install without root, pinned `dsh` version, CI on GitHub Actions,
+  contributing and security guides, documentation in English and Brazilian Portuguese.
+- **Stack:** Bash · JavaScript (VS Code Extension API) · Node.js · Make
+- **Start here:** [architecture](docs/architecture.md) · [extension README](vscode-extension/README.md)
 
 ## Features
 

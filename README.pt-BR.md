@@ -1,6 +1,17 @@
-# deepseek-harness-desktop
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/cover-pt-dark.svg">
+  <img src="docs/assets/cover-pt-light.svg" width="100%" alt="DeepSeek Harness Desktop — agente de código no desktop e no VS Code, via Agent Client Protocol.">
+</picture>
 
-[English](README.md) | Português (Brasil)
+<p align="center">
+  <a href="README.md">English</a> | Português (Brasil)
+</p>
+
+<p align="center">
+  <a href="https://github.com/YanCarneosso/deepseek-harness-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/YanCarneosso/deepseek-harness-desktop/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-334155"></a>
+  <img alt="Plataforma: Linux" src="https://img.shields.io/badge/plataforma-Linux-FCC624?logo=linux&logoColor=black">
+</p>
 
 Integração desktop do [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
 para Linux: abra pelo menu de aplicativos como app em janela própria, converse com ele dentro do
@@ -8,6 +19,19 @@ VS Code e gerencie as configurações global e por projeto.
 
 > **Projeto não oficial.** Sem vínculo, endosso ou suporte da DeepSeek.
 > O DeepSeek Harness está em *developer preview*; espere mudanças incompatíveis no projeto original.
+
+## Em 30 segundos
+
+- **O que é:** integração desktop para Linux do DeepSeek Harness, um agente de programação: janela
+  de aplicativo própria, atalho no menu de aplicativos e chat dentro do VS Code.
+- **Como funciona:** modo app do Chromium com perfil isolado; extensão do VS Code que usa o Agent
+  Client Protocol (chamadas de ferramentas, diffs, pedidos de permissão, escolha de modelo e de
+  esforço de raciocínio); uma instância por pasta, cada uma na sua porta; configuração em camadas,
+  global e por projeto.
+- **Engenharia:** instalação por usuário sem root, versão do `dsh` fixada, CI no GitHub Actions,
+  guias de contribuição e segurança, documentação em inglês e português.
+- **Stack:** Bash · JavaScript (API de extensões do VS Code) · Node.js · Make
+- **Por onde começar:** [arquitetura](docs/architecture.md) · [README da extensão](vscode-extension/README.md)
 
 ## Recursos
 
